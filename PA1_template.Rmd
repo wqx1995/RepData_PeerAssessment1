@@ -1,25 +1,142 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Assignment 1"
+author: "Warren"
+date: "13/04/2020"
+output: html_document
 ---
 
+## 1. Reading in the data, forked from course website
+```{r}
+unzip("C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1/activity.zip")
 
-## Loading and preprocessing the data
+MOVE<- read.csv("C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1/Activity.csv")
+```
 
+## 2. What is the total number of steps per day?
 
+### Looking at data set
+```{r}
+head(MOVE)
+names(MOVE)
+dim(MOVE)
+summary(MOVE)
+```
 
-## What is mean total number of steps taken per day?
+### Calculating Total Number of Steps per Day
+```{r}
+TotalSPD<- tapply(MOVE$steps, MOVE$date, sum)
+TotalSPD
+```
 
+### Drawing Histogram
+```{r, histogram, fig.height=4}
+library(ggplot2)
+qplot(TotalSPD, binwidth=500, main="Total number of steps per day")
+```
 
+### Calculating mean and median of the total no. of steps each day
+```{r}
+mean(TotalSPD, na.rm=TRUE)
+median(TotalSPD, na.rm=TRUE)
+```
 
-## What is the average daily activity pattern?
+## 3. What is the average daily activity pattern? 
 
+### Calculate Average no. of steps for each interval
+```{r}
+mean_interval<-tapply(MOVE$steps, MOVE$interval, mean, na.rm=TRUE)
+```
 
+### Draw Time Series
+```{r, line graph, fig.height=4}
+average<-as.data.frame(mean_interval)
+intervals <-as.data.frame(unique(MOVE$interval))
+df<-data.frame(average,intervals)
+colnames(df)<- c("average", "intervals")
+qplot(df$intervals, df$average, 
+      geom="line", main="TIME SERIES", xlab="5-minute intervals", 
+      ylab="Average steps")
+```
 
-## Imputing missing values
+### Finding which day contains the maximum number of steps
+```{r}
+df[which.max(df$average),]
+```
 
+## 4.Imputing missing values
 
+### calculate no. of missing values
+```{r}
+sum(is.na(MOVE$steps))
+```
+      
+### Let missing value = mean for that interval
+#### Subset data where there are no NAs
+```{r}
+MOVE_no_NA<- MOVE[which(!is.na(MOVE$steps)),]
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+####Convert average per interval into intefers
+```{r}
+df$average<- as.integer(df$average)
+```
+
+#### Subset data where steps have NAs
+```{r}
+MOVE_NA<-MOVE[which(is.na(MOVE$steps)),]
+```
+            
+#### Fill NAs with average steps based on interval
+```{r}
+MOVE_NA$steps<- ifelse(MOVE_NA$interval==df$intervals, df$average)
+```
+            
+#### Row bind datasets such that NAs are replaced with means
+```{r}
+MOVE_impute<- rbind(MOVE_no_NA, MOVE_NA)
+```
+
+### Drawing historgram of total number of steps taken daily
+```{r}
+      TotalSPD_impute<- tapply(MOVE_impute$steps, MOVE_impute$date, sum)
+      qplot(TotalSPD_impute, binwidth=500, main="Total number of steps per day")
+```
+
+### Calculating mean and median      
+```{r}
+mean(TotalSPD_impute, na.rm=TRUE)
+median(TotalSPD_impute, na.rm=TRUE)
+```
+      
+## 5. Differences in activity patterns on weekdays vs weekends
+
+### Changing dates to days of the week
+```{r}
+MOVE_impute$day<-weekdays(as.Date(MOVE_impute$date))
+```
+
+### Load dplyr and group by day
+```{r}
+library(dplyr)
+group_by(MOVE_impute, day)
+```
+      
+### Changing day of week to weekday/weekend
+```{r}
+MOVE_impute$day<- ifelse(MOVE_impute$day==
+            c("Saturday", "Sunday"), yes= "Weekend", no="Weekday")
+```
+
+### Making panel plot
+```{r, histogram2, fig.height=4}
+library(dplyr)
+meansteps <- MOVE_impute %>% group_by(interval,day) %>% summarise(average = mean(steps))
+
+qplot(interval,average,data=meansteps,
+            geom="line",facets=day~.,xlab="5-minute interval",
+            ylab="average number of steps",
+            main="Average steps pattern between Weekday and Weekend")
+```
+      
+            
+      
