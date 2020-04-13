@@ -29,7 +29,7 @@ TotalSPD
 ```
 
 ### Drawing Histogram
-```{r, histogram, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1"}
+```{r, histogram, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1/histogram.png"}
 library(ggplot2)
 qplot(TotalSPD, binwidth=500, main="Total number of steps per day")
 ```
@@ -48,7 +48,7 @@ mean_interval<-tapply(MOVE$steps, MOVE$interval, mean, na.rm=TRUE)
 ```
 
 ### Draw Time Series
-```{r, line graph, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1"}
+```{r, line graph, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1/timeseries.png"}
 average<-as.data.frame(mean_interval)
 intervals <-as.data.frame(unique(MOVE$interval))
 df<-data.frame(average,intervals)
@@ -128,7 +128,7 @@ MOVE_impute$day<- ifelse(MOVE_impute$day==
 ```
 
 ### Making panel plot
-```{r, histogram2, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1"}
+```{r, histogram2, fig.height=4, fig.path="C:/Users/Herman/Documents/MDRP/RepData_PeerAssessment1/histogram2.png"}
 library(dplyr)
 meansteps <- MOVE_impute %>% group_by(interval,day) %>% summarise(average = mean(steps))
 
